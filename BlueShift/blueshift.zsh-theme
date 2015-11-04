@@ -3,19 +3,22 @@ PROMPT_CHAR='>'
 Function BuildPrompt() {
 	LAST_EXIT_CODE=$?
 
-	GIT_PREFIX="git:"
-	GIT_SUFIX=""
-	GIT_BRANCH=$(GitBranch)
-	GIT_OPEN_BRACKET="{ "
-	GIT_CLOSE_BRACKET=" }"
+	if HasGitBranch; then
+		GIT_PREFIX="git:"
+		GIT_SUFIX=""
+		GIT_BRANCH=$(GitBranch)
+		GIT_OPEN_BRACKET="{ "
+		GIT_CLOSE_BRACKET=" }"
 
-	(( TOTAL_CHAR_COUNT = ${#GIT_PREFIX} \
-	                    + ${#GIT_SUFIX} \
-	                    + ${#GIT_BRANCH} \
-	                    + ${#GIT_OPEN_BRACKET} \
-	                    + ${#GIT_CLOSE_BRACKET} ))
+		(( TOTAL_CHAR_COUNT = ${#GIT_PREFIX} \
+		                    + ${#GIT_SUFIX} \
+		                    + ${#GIT_BRANCH} \
+		                    + ${#GIT_OPEN_BRACKET} \
+		                    + ${#GIT_CLOSE_BRACKET} ))
 
-	PROMPT_STRING="$(SpaceFiller " " $TOTAL_CHAR_COUNT)$FG[027]$GIT_OPEN_BRACKET$FG[039]$GIT_PREFIX$FG[051]$GIT_BRANCH$FG[027]$GIT_CLOSE_BRACKET\n$(ColoredArrow $LAST_EXIT_CODE)"
+		PROMPT_STRING="$PROMPT_STRING$(SpaceFiller " " $TOTAL_CHAR_COUNT)$FG[027]$GIT_OPEN_BRACKET$FG[039]$GIT_PREFIX$FG[051]$GIT_BRANCH$FG[027]$GIT_CLOSE_BRACKET"
+	fi
+	PROMPT_STRING="$PROMPT_STRING\n$(ColoredArrow $LAST_EXIT_CODE)"
 
 	echo $PROMPT_STRING
 }
@@ -28,14 +31,15 @@ Function ColoredArrow() {
 	fi
 }
 
-Function GitBranch() {
-	GIT_BRANCH=$(current_branch)
-
-	if [[ ${#GIT_BRANCH} < 1 ]]; then
-		GIT_BRANCH="n/a"
+Function HasGitBranch() {
+	if [ -z $(current_branch) ]; then
+		return 1
+	else
+		return 0
 	fi
-
-	echo "$GIT_BRANCH"
+}
+Function GitBranch() {
+	echo $(current_branch)
 }
 
 Function SpaceFiller() {
