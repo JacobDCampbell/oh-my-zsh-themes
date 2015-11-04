@@ -55,7 +55,10 @@ Function SpaceFiller() {
     fillChar=$1
     fillOffset=$2
 
-    (( fillLength = ${COLUMNS} - $fillOffset ))
+    while [ $fillOffset -gt $COLUMNS ]; do
+        (( fillOffset = $fillOffset - $COLUMNS ))
+    done
+    (( fillLength = $COLUMNS - $fillOffset ))
 
     for i in {1..$fillLength}; do
         filler="$filler$fillChar"
