@@ -1,5 +1,8 @@
 PROMPT_CHAR='>'
 
+GIT_STATUS_ICON_DIRTY="❗"
+GIT_STATUS_ICON_CLEAN="✔"
+
 Function BuildPrompt() {
     LAST_EXIT_CODE=$?
 
@@ -14,18 +17,20 @@ Function BuildPrompt() {
     if HasGitBranch; then
         GIT_PREFIX="git:"
         GIT_SUFIX=""
-        GIT_BRANCH=$(GitBranch)
+        GIT_BRANCH=$(current_branch)
         GIT_OPEN_BRACKET="{ "
         GIT_CLOSE_BRACKET=" }"
+        GIT_STATUS_ICON=$(GitStatusIcon)
 
         (( TOTAL_CHAR_COUNT = $TOTAL_CHAR_COUNT \
                             + ${#GIT_PREFIX} \
                             + ${#GIT_SUFIX} \
                             + ${#GIT_BRANCH} \
                             + ${#GIT_OPEN_BRACKET} \
-                            + ${#GIT_CLOSE_BRACKET} ))
+                            + ${#GIT_CLOSE_BRACKET} \
+                            + ${#GIT_STATUS_ICON} ))
 
-        PROMPT_STRING="$PROMPT_STRING$(SpaceFiller " " $TOTAL_CHAR_COUNT)$FG[027]$GIT_OPEN_BRACKET$FG[039]$GIT_PREFIX$FG[051]$GIT_BRANCH$FG[027]$GIT_CLOSE_BRACKET"
+        PROMPT_STRING="$PROMPT_STRING$(SpaceFiller " " $TOTAL_CHAR_COUNT)$(ColoredGitStatusIcon $GIT_STATUS_ICON)$FG[027]$GIT_OPEN_BRACKET$FG[039]$GIT_PREFIX$FG[051]$GIT_BRANCH$FG[027]$GIT_CLOSE_BRACKET"
     fi
     PROMPT_STRING="$PROMPT_STRING\n$(ColoredArrow $LAST_EXIT_CODE)"
 
@@ -47,8 +52,19 @@ Function HasGitBranch() {
         return 0
     fi
 }
-Function GitBranch() {
-    echo $(current_branch)
+Function GitStatusIcon() {
+    if $(git status 2>/dev/null | tail -n1 | grep -iq "nothing to commit"); then
+        echo "$GIT_STATUS_ICON_CLEAN"
+    else
+        echo "$GIT_STATUS_ICON_DIRTY"
+    fi
+}
+Function ColoredGitStatusIcon() {
+    if [[ "$1" == "$GIT_STATUS_ICON_CLEAN" ]]; then
+        echo "$FG[082]$1"
+    else
+        echo "$FG[196]$1"
+    fi
 }
 
 Function SpaceFiller() {
